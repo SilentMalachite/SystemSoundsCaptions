@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Windows, 24-40 px: fewer bars on the pixel grid, no caption panel -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#31468A"/>
+      <stop offset="1" stop-color="#121936"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#bg)"/>
+  <g fill="#5EE3E0">
+    <rect x="7" y="9" width="2" height="5" rx="1"/>
+    <rect x="11" y="6" width="2" height="11" rx="1"/>
+    <rect x="15" y="4" width="2" height="15" rx="1"/>
+    <rect x="19" y="7" width="2" height="9" rx="1"/>
+    <rect x="23" y="9" width="2" height="5" rx="1"/>
+  </g>
+  <rect x="6" y="21" width="20" height="3" rx="1.5" fill="#FFFFFF"/>
+  <rect x="6" y="26" width="12" height="3" rx="1.5" fill="#8B95AD"/>
+</svg>
