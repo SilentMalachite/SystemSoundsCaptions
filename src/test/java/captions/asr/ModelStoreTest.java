@@ -113,6 +113,27 @@ class ModelStoreTest {
     }
 
     @Test
+    void twoRunsAtOnceDownloadOnce() throws Exception {
+        body = zip(NAME + "/am/final.mdl", NAME + "/conf/model.conf");
+        var store = store();
+        var errors = new java.util.concurrent.CopyOnWriteArrayList<Throwable>();
+        Runnable run = () -> {
+            try {
+                store.ensure(NAME, (d, t) -> { });
+            } catch (Exception e) {
+                errors.add(e);
+            }
+        };
+        var a = Thread.ofPlatform().start(run);
+        var b = Thread.ofPlatform().start(run);
+        a.join();
+        b.join();
+        assertTrue(errors.isEmpty(), errors.toString());
+        assertEquals(1, requests.get());
+        assertTrue(store.isInstalled(NAME));
+    }
+
+    @Test
     void refusesZipWithoutModelFiles() throws Exception {
         body = zip(NAME + "/readme.txt");
         assertThrows(IOException.class, () -> store().ensure(NAME, (d, t) -> { }));

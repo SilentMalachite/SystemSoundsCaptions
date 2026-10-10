@@ -65,10 +65,10 @@ public final class FileSource implements AudioSource {
                 if (!running) {
                     return;
                 }
-                if (played == 0) {
+                if (played == 0 || source.exitCode() != 0) {
                     String detail = source.lastError();
-                    throw new IOException("ファイルを読めません: " + file.getFileName()
-                            + (detail == null ? "" : "\n" + detail));
+                    throw new IOException((played == 0 ? "ファイルを読めません: " : "ファイルの途中で読めなくなりました: ")
+                            + file.getFileName() + (detail == null ? "" : "\n" + detail));
                 }
                 if (line != null) {
                     line.drain();

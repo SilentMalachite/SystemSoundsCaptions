@@ -46,6 +46,18 @@ public final class Decoders {
             return total.get();
         }
 
+        /** The exit code of ffmpeg after its output ended, or 0 when Java Sound read the file. */
+        public int exitCode() throws InterruptedException {
+            if (process == null) {
+                return 0;
+            }
+            if (!process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                process.destroy();
+                return -1;
+            }
+            return process.exitValue();
+        }
+
         /** The last line ffmpeg wrote, for an error message. */
         public String lastError() {
             return lastError == null ? null : lastError.get();

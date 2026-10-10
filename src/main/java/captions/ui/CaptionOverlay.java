@@ -52,6 +52,7 @@ public final class CaptionOverlay extends JWindow {
     private String partial = "";
     private String notice = "";
     private String placeholder = "";
+    private boolean closing;
     private int fontSize;
 
     public CaptionOverlay(Preferences prefs) {
@@ -98,6 +99,31 @@ public final class CaptionOverlay extends JWindow {
     public void setPlaceholder(String text) {
         placeholder = text;
         repaint();
+    }
+
+    /** Hides the window once the last lines fade, so the user can read the end of a file. */
+    public void finish() {
+        partial = "";
+        placeholder = "";
+        notice = ""; // a warning about the live input means nothing after the end
+        closing = true;
+        hideIfDone();
+        repaint();
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        if (visible) {
+            closing = false;
+        }
+        super.setVisible(visible);
+    }
+
+    private void hideIfDone() {
+        if (closing && lines.isEmpty()) {
+            closing = false;
+            super.setVisible(false);
+        }
     }
 
     public void clear() {
@@ -160,6 +186,7 @@ public final class CaptionOverlay extends JWindow {
         if (changed) {
             repaint();
         }
+        hideIfDone();
     }
 
     private final class View extends JComponent {

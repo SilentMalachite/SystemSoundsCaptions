@@ -32,9 +32,11 @@ class VoskNativeTest {
     @Test
     void pathIsNullTerminated() {
         try (var arena = Arena.ofConfined()) {
-            var segment = VoskNative.nativePath(arena, Path.of("/tmp/model"));
+            Path model = Path.of("tmp", "model");
+            var segment = VoskNative.nativePath(arena, model);
             assertEquals(0, segment.get(java.lang.foreign.ValueLayout.JAVA_BYTE, segment.byteSize() - 1));
-            assertEquals("/tmp/model".length() + 1, segment.byteSize());
+            // ASCII path: one byte per character in any native encoding, plus the terminator
+            assertEquals(model.toAbsolutePath().toString().length() + 1, segment.byteSize());
         }
     }
 }

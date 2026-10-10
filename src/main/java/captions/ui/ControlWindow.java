@@ -346,7 +346,7 @@ public final class ControlWindow extends JFrame {
                 startButton.setText("▶ 開始");
                 status.setText("待機中");
                 status.setForeground(DIM);
-                overlay.setVisible(false);
+                overlay.finish();
             }
             case LOADING -> {
                 startButton.setText("キャンセル");

@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Comparator;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -29,6 +30,7 @@ public final class ModelStore {
 
     private final Path root;
     private final URI base;
+    private final ReentrantLock installing = new ReentrantLock();
 
     public ModelStore(Path root, URI base) {
         this.root = root;
@@ -61,6 +63,19 @@ public final class ModelStore {
         if (isInstalled(name)) {
             return dir;
         }
+        // a cancelled run can still be cleaning up its .zip.part when the user starts again
+        installing.lockInterruptibly();
+        try {
+            if (isInstalled(name)) {
+                return dir;
+            }
+            return install(name, dir, progress);
+        } finally {
+            installing.unlock();
+        }
+    }
+
+    private Path install(String name, Path dir, Progress progress) throws IOException, InterruptedException {
         Files.createDirectories(root);
         Path part = root.resolve(name + ".zip.part");
         Path unpack = null;

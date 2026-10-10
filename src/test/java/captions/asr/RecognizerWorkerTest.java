@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,7 +87,7 @@ class RecognizerWorkerTest {
             queue.offer(new byte[]{1, 0});
         }
         queue.end();
-        Thread.ofPlatform().start(worker);
+        var thread = Thread.ofPlatform().start(worker);
 
         assertTrue(ended.await(2, TimeUnit.SECONDS));
         assertEquals(List.of(
@@ -95,7 +96,8 @@ class RecognizerWorkerTest {
                 new CaptionEvent.Final("今日は晴れ", ((CaptionEvent.Final) events.get(2)).at()),
                 new CaptionEvent.Partial("明日"),
                 new CaptionEvent.Final("明日", ((CaptionEvent.Final) events.get(4)).at())), events);
-        Thread.sleep(50);
+        thread.join(2000);
+        assertFalse(thread.isAlive());
         assertTrue(recognizer.closed.get());
     }
 
@@ -110,9 +112,13 @@ class RecognizerWorkerTest {
         queue.offer(new byte[]{1, 0});
         queue.offer(new byte[]{1, 0});
         var thread = Thread.ofPlatform().start(worker);
-        Thread.sleep(300);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (events.size() < 2 && System.nanoTime() < deadline) {
+            Thread.onSpinWait();
+        }
         worker.stop();
-        thread.join(1000);
+        thread.join(2000);
+        assertFalse(thread.isAlive());
         assertEquals(List.of(new CaptionEvent.Partial("あ"), new CaptionEvent.Partial("")), events);
     }
 
@@ -143,7 +149,8 @@ class RecognizerWorkerTest {
         assertTrue(inAccept.await(2, TimeUnit.SECONDS));
         worker.stop();          // the user presses stop while a chunk is in the recognizer
         release.countDown();
-        thread.join(1000);
+        thread.join(2000);
+        assertFalse(thread.isAlive());
         assertTrue(events.isEmpty());
     }
 
