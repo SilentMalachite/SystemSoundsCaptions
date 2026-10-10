@@ -73,10 +73,30 @@ jobs:
           path: target/dist/*
           if-no-files-found: error
 
+  # the zip must open on macOS and Linux too, which needs "/" in its paths
+  check-zip:
+    name: Windows zip extracts with unzip
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-windows-latest
+
+      - name: Extract
+        run: |
+          zip=$(ls SystemSoundsCaptions-*-windows-x64.zip)
+          if unzip -Z1 "$zip" | grep -qF '\'; then
+            echo "::error::$zip has paths with backslashes"; exit 1
+          fi
+          unzip -q "$zip" -d out
+          test -f "out/System Sounds Captions/System Sounds Captions.exe"
+          test -f "out/System Sounds Captions/app/SystemSoundsCaptions.jar"
+
   publish:
     name: Draft release
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [jar, package]
+    needs: [jar, package, check-zip]
     runs-on: ubuntu-latest
     permissions:
       contents: write
