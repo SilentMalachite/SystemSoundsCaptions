@@ -59,6 +59,9 @@
     <!-- the jar must carry the license texts it is distributed under -->
     <resources>
       <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+      <resource>
         <directory>${project.basedir}</directory>
         <targetPath>META-INF</targetPath>
         <includes>

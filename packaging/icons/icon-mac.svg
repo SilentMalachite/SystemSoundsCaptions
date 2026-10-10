@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- macOS: 824 px tile on the 1024 px grid, with a drop shadow -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#31468A"/>
+      <stop offset="1" stop-color="#121936"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="170" x2="0" y2="530" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EF0DA"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="16"/>
+      <feOffset dy="14"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(100 100) scale(0.8046875)">
+    <rect width="1024" height="1024" rx="230" fill="url(#bg)" filter="url(#shadow)"/>
+    <rect x="3" y="3" width="1018" height="1018" rx="227" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="6"/>
+    <g fill="url(#wave)">
+      <rect x="196" y="285" width="56" height="130" rx="28"/>
+      <rect x="292" y="230" width="56" height="240" rx="28"/>
+      <rect x="388" y="180" width="56" height="340" rx="28"/>
+      <rect x="484" y="225" width="56" height="250" rx="28"/>
+      <rect x="580" y="170" width="56" height="360" rx="28"/>
+      <rect x="676" y="240" width="56" height="220" rx="28"/>
+      <rect x="772" y="290" width="56" height="120" rx="28"/>
+    </g>
+    <rect x="152" y="600" width="720" height="228" rx="60" fill="#000000" fill-opacity="0.32"/>
+    <rect x="216" y="652" width="592" height="48" rx="24" fill="#FFFFFF"/>
+    <rect x="216" y="728" width="384" height="48" rx="24" fill="#8B95AD"/>
+  </g>
+</svg>

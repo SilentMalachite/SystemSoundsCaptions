@@ -2,6 +2,7 @@ package captions;
 
 import captions.asr.ModelStore;
 import captions.caption.CaptionBus;
+import captions.ui.AppIcon;
 import captions.ui.CaptionOverlay;
 import captions.ui.ControlWindow;
 
@@ -29,7 +30,9 @@ public final class App {
             var pipeline = new Pipeline(session, bus, new ModelStore(ModelStore.defaultRoot(), ModelStore.VOSK_MODELS));
             var overlay = new CaptionOverlay(prefs.node("overlay"));
             bus.subscribe(overlay::onEvent);
-            new ControlWindow(session, pipeline, overlay, prefs).setVisible(true);
+            var window = new ControlWindow(session, pipeline, overlay, prefs);
+            AppIcon.apply(window);
+            window.setVisible(true);
         });
     }
 }

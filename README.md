@@ -113,6 +113,8 @@ GitHub Actions（`.github/workflows/ci.yml`）が、push とプルリクエス�
 
 設計の計画書は `docs/plan/plan.packed.html` にあります。
 
+アイコンの元データ（SVG）と、macOS 用の `.icns`、Windows 用の `.ico` は `packaging/icons/` にあります。SVG を直したら `packaging/icons/build-icons.sh` を実行すると、`.icns`・`.ico` と、アプリが使う PNG（`src/main/resources/captions/icons/`）を作り直します。
+
 ## ライセンス
 
 [Apache License 2.0](LICENSE) です。
