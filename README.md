@@ -10,20 +10,55 @@
 [![Last commit](https://img.shields.io/github/last-commit/SilentMalachite/SystemSoundsCaptions)](https://github.com/SilentMalachite/SystemSoundsCaptions/commits/main)
 
 マイク、PC で鳴っている音（システム音声）、音声・動画ファイルを、リアルタイムで日本語字幕にするデスクトップアプリです。
-macOS と Windows で動きます。配るのは jar 1つだけです。
+macOS と Windows で動きます。Java を入れなくても動くアプリ版と、Java で動かす jar 版があります。
 
 - 音声認識は PC の中で動きます（[Vosk](https://alphacephei.com/vosk/)）。初回だけ日本語モデル（約 48 MB）をダウンロードします。
 - 字幕は、ほかのアプリより前面の半透明ウィンドウに出ます。認識中の文字は灰色、確定した文字は白です。
 - 字幕ウィンドウはドラッグで動かせます。位置と文字サイズは次の起動でも使われます。
 
+## ダウンロード
+
+[Releases](https://github.com/SilentMalachite/SystemSoundsCaptions/releases/latest) から、使う PC に合うものを選びます。
+
+| PC | ファイル |
+|---|---|
+| Mac（Apple シリコン: M1 以降） | `SystemSoundsCaptions-<バージョン>-mac-arm64.dmg` |
+| Windows（64 ビット） | `SystemSoundsCaptions-<バージョン>-windows-x64.zip` |
+| Intel の Mac、Linux（Java 25 以上が必要） | `SystemSoundsCaptions.jar` |
+
+Mac の種類は、アップルメニュー ›「この Mac について」でわかります。「チップ」が Apple M1 などなら Apple シリコン、「プロセッサ」が Intel なら Intel の Mac です。
+
 ## 必要なもの
 
-- **Java 25 以上**（例: [Adoptium Temurin](https://adoptium.net/)）
+- jar 版だけ **Java 25 以上**（例: [Adoptium Temurin](https://adoptium.net/)）。アプリ版は Java が中に入っています。
 - ファイルの MP4・M4A・MOV などを読むときだけ **ffmpeg**（WAV・AIFF・MP3 は不要）
   - macOS: `brew install ffmpeg`
   - Windows: `winget install ffmpeg`
 
 ## 起動
+
+### macOS（アプリ版）
+
+1. dmg を開き、**System Sounds Captions** を「アプリケーション」フォルダへドラッグします。
+2. 「アプリケーション」フォルダの **System Sounds Captions** をダブルクリックします。
+
+アプリは署名していないので、初回は「開いていません」という警告が出ます。そのときは次の手順で開きます。
+
+1. 警告を **完了**（または **OK**）で閉じます。
+2. システム設定 › プライバシーとセキュリティ を開き、下のほうの「"System Sounds Captions" は…」の横にある **このまま開く** を押します。
+3. もう一度確認が出たら **このまま開く** を押します。
+
+2回目からは、ふつうにダブルクリックで起動します。
+
+### Windows（アプリ版）
+
+1. zip を右クリックし、**すべて展開** を選びます。
+2. 展開したフォルダの中の **System Sounds Captions.exe** をダブルクリックします。
+
+初回に「Windows によって PC が保護されました」と出たら、**詳細情報** を押してから **実行** を押します。
+フォルダの中のほかのファイルもアプリの一部です。フォルダごと好きな場所に置いてください。
+
+### jar 版
 
 `SystemSoundsCaptions.jar` をダブルクリックします。
 
@@ -70,7 +105,7 @@ Java は PC の出力音を直接録音できません。出力音を入力デ�
 
 | 症状 | 対処 |
 |---|---|
-| 「マイクの音が届きません」と出る | macOS: システム設定 › プライバシーとセキュリティ › マイク で、Java（またはターミナル）を許可します。Windows: 設定 › プライバシーとセキュリティ › マイク で「デスクトップ アプリがマイクにアクセスできるようにする」をオンにします。 |
+| 「マイクの音が届きません」と出る | macOS: システム設定 › プライバシーとセキュリティ › マイク で、アプリ版は System Sounds Captions、jar 版は Java（またはターミナル）を許可します。Windows: 設定 › プライバシーとセキュリティ › マイク で「デスクトップ アプリがマイクにアクセスできるようにする」をオンにします。 |
 | 「この形式を読むには ffmpeg が必要です」 | ffmpeg を入れます（上の「必要なもの」）。 |
 | モデルをダウンロードできない | ネット接続を確かめます。手動で入れるときは、[vosk-model-small-ja-0.22.zip](https://alphacephei.com/vosk/models/vosk-model-small-ja-0.22.zip) を下の「モデルの場所」に展開します。 |
 | 字幕ウィンドウが見えない | 字幕は開始中だけ出ます。画面外に出たときは、下の設定を消すと画面下の中央に戻ります。 |
@@ -91,6 +126,20 @@ mvn package
 ```
 
 `target/SystemSoundsCaptions.jar`（約 26 MB）ができます。リリース版は [Releases](https://github.com/SilentMalachite/SystemSoundsCaptions/releases/latest) からダウンロードできます。macOS（arm64・x64）、Windows x64、Linux x64 用のネイティブライブラリが入っています。Linux はテストしていません。
+
+### アプリ版
+
+`mvn package` のあとに次を実行すると、`target/dist/` にその OS 用のアプリ版ができます（macOS は dmg、Windows は zip）。jpackage は実行した OS と CPU 用しか作れません。同梱する Java は、実行に使った JDK から必要なモジュールだけを取り出したものです。
+
+```sh
+packaging/jpackage.sh
+```
+
+Windows では Git Bash から実行します。
+
+### リリース
+
+`v1.2.3` の形のタグを push すると、`.github/workflows/release.yml` が jar、macOS（Apple シリコン）の dmg、Windows の zip を作り、下書きのリリースに添付します。内容を確かめてから、GitHub でリリースを公開してください。タグと `pom.xml` のバージョンが違うと失敗します。Actions の画面から手動で実行したときと、`packaging/` を変えるプルリクエストのときは、リリースは作らずに成果物（artifact）だけを作ります。
 
 ### CI
 
