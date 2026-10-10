@@ -80,7 +80,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.6.0</version>
         <configuration>
-          <argLine>-Djava.awt.headless=true</argLine>
+          <argLine>-Djava.awt.headless=true --enable-native-access=ALL-UNNAMED</argLine>
+          <systemPropertyVariables>
+            <!-- libvosk is unpacked under user.home; keep tests out of the real home folder -->
+            <user.home>${project.build.directory}/test-home</user.home>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
 

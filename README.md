@@ -1,5 +1,13 @@
 # System Sounds Captions
 
+[![CI](https://github.com/SilentMalachite/SystemSoundsCaptions/actions/workflows/ci.yml/badge.svg)](https://github.com/SilentMalachite/SystemSoundsCaptions/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/SilentMalachite/SystemSoundsCaptions)](https://github.com/SilentMalachite/SystemSoundsCaptions/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/SilentMalachite/SystemSoundsCaptions/total)](https://github.com/SilentMalachite/SystemSoundsCaptions/releases)
+[![Java](https://img.shields.io/badge/Java-25%2B-orange?logo=openjdk)](https://adoptium.net/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](#必要なもの)
+[![Speech](https://img.shields.io/badge/speech-Vosk%20%28offline%29-blue)](https://alphacephei.com/vosk/)
+[![Last commit](https://img.shields.io/github/last-commit/SilentMalachite/SystemSoundsCaptions)](https://github.com/SilentMalachite/SystemSoundsCaptions/commits/main)
+
 マイク、PC で鳴っている音（システム音声）、音声・動画ファイルを、リアルタイムで日本語字幕にするデスクトップアプリです。
 macOS と Windows で動きます。配るのは jar 1つだけです。
 
@@ -81,7 +89,16 @@ Java 25 以上と Maven 3.9 以上が必要です。
 mvn package
 ```
 
-`target/SystemSoundsCaptions.jar`（約 26 MB）ができます。macOS（arm64・x64）、Windows x64、Linux x64 用のネイティブライブラリが入っています。Linux はテストしていません。
+`target/SystemSoundsCaptions.jar`（約 26 MB）ができます。リリース版は [Releases](https://github.com/SilentMalachite/SystemSoundsCaptions/releases/latest) からダウンロードできます。macOS（arm64・x64）、Windows x64、Linux x64 用のネイティブライブラリが入っています。Linux はテストしていません。
+
+### CI
+
+GitHub Actions（`.github/workflows/ci.yml`）が、push とプルリクエストのたびに次を行います。
+
+- ubuntu、macOS、Windows で `mvn verify`（単体テストと、各 OS で libvosk を FFM で読み込むテスト）
+- Launcher が Java 8、本体が Java 25 のクラス形式であることの確認
+- Java 8 で jar を起動し、バージョンのエラーが出ることの確認
+- jar を成果物（artifact）として保存
 
 ### 構成
 
