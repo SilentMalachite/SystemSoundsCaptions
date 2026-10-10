@@ -1,0 +1,97 @@
+name: Release
+
+# A v* tag builds the jar, the macOS DMG and the Windows zip, and attaches them to a draft release.
+# Run by hand, or on a pull request that changes the packaging, it only builds them as workflow artifacts.
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - packaging/**
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  jar:
+    name: Jar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Check the tag matches the pom version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
+          [[ "$GITHUB_REF_NAME" == "v$version" ]] || { echo "::error::tag $GITHUB_REF_NAME, pom $version"; exit 1; }
+
+      - name: Build and test
+        run: mvn -B -ntp verify
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: jar
+          path: target/SystemSoundsCaptions.jar
+          if-no-files-found: error
+
+  package:
+    name: Package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # jpackage builds only for the OS and CPU it runs on; macos-latest is Apple silicon
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # the bundled runtime is this JDK
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build
+        run: mvn -B -ntp package -DskipTests
+
+      - name: Package
+        shell: bash
+        run: packaging/jpackage.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-${{ matrix.os }}
+          path: target/dist/*
+          if-no-files-found: error
+
+  publish:
+    name: Draft release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [jar, package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -l dist
+          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --draft --title "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" dist/* --clobber
