@@ -53,6 +53,12 @@ class FfmpegTest {
     }
 
     @Test
+    void ignoresRelativeEntries() throws IOException {
+        executable(tmp.resolve("rel"), "ffmpeg");
+        assertEquals(Optional.empty(), Ffmpeg.find("." + File.pathSeparator + "rel", List.of(), false));
+    }
+
+    @Test
     void readsDuration() {
         assertEquals(Optional.of(Duration.ofMillis(870_120)),
                 Ffmpeg.parseDuration("  Duration: 00:14:30.12, start: 0.000000, bitrate: 128 kb/s"));

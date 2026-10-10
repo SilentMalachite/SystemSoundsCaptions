@@ -26,7 +26,6 @@ public final class Ffmpeg {
             env("LOCALAPPDATA").ifPresent(d -> extra.add(Path.of(d, "Microsoft", "WinGet", "Links")));
             env("USERPROFILE").ifPresent(d -> extra.add(Path.of(d, "scoop", "shims")));
             extra.add(Path.of("C:\\ProgramData\\chocolatey\\bin"));
-            extra.add(Path.of("C:\\ffmpeg\\bin"));
         } else {
             extra.add(Path.of("/opt/homebrew/bin"));
             extra.add(Path.of("/usr/local/bin"));
@@ -48,7 +47,11 @@ public final class Ffmpeg {
                 continue;
             }
             try {
-                dirs.add(Path.of(dir));
+                Path p = Path.of(dir);
+                // a relative entry such as "." would run an ffmpeg planted next to the jar or the file
+                if (p.isAbsolute()) {
+                    dirs.add(p);
+                }
             } catch (InvalidPathException e) {
                 // skip an entry Windows cannot use
             }

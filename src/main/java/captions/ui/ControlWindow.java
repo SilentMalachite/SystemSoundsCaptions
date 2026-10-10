@@ -10,10 +10,12 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSlider;
@@ -23,6 +25,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -115,6 +118,16 @@ public final class ControlWindow extends JFrame {
     }
 
     private void buildLayout() {
+        // file and device names are not ours: a name that starts with "<html>" must stay plain text
+        dropArea.putClientProperty("html.disable", Boolean.TRUE);
+        devices.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean selected, boolean focus) {
+                putClientProperty("html.disable", Boolean.TRUE);
+                return super.getListCellRendererComponent(list, value, index, selected, focus);
+            }
+        });
         var form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createEmptyBorder(12, 14, 6, 14));
         var c = new GridBagConstraints();

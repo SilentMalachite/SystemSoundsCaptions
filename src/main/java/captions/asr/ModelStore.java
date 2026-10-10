@@ -35,21 +35,15 @@ public final class ModelStore {
         this.base = base;
     }
 
-    public static Path defaultRoot() {
-        Path home = Path.of(System.getProperty("user.home"), ".systemsoundscaptions", "models");
-        String publicDir = System.getenv("PUBLIC");
-        return chooseRoot(home, publicDir == null ? null : Path.of(publicDir, "SystemSoundsCaptions", "models"));
-    }
+    /** The environment variable that sets another model folder. */
+    public static final String MODELS_ENV = "SYSTEMSOUNDSCAPTIONS_MODELS";
 
-    /**
-     * libvosk opens the model with a narrow-char path. If the user folder has a character the
-     * Windows code page cannot hold (a Japanese name on English Windows), use the public folder.
-     */
-    static Path chooseRoot(Path home, Path fallback) {
-        if (VoskNative.canPass(home.toAbsolutePath().toString()) || fallback == null) {
-            return home;
+    public static Path defaultRoot() {
+        String custom = System.getenv(MODELS_ENV);
+        if (custom != null && !custom.isBlank() && Path.of(custom).isAbsolute()) {
+            return Path.of(custom);
         }
-        return fallback;
+        return Path.of(System.getProperty("user.home"), ".systemsoundscaptions", "models");
     }
 
     public Path dir(String name) {

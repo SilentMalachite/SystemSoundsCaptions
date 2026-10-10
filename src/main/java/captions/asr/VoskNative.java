@@ -16,6 +16,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
@@ -198,14 +199,38 @@ final class VoskNative {
      */
     static MemorySegment nativePath(Arena arena, Path dir) {
         String path = dir.toAbsolutePath().toString();
+        if (!canPass(path) && System.getProperty("os.name", "").startsWith("Windows")) {
+            // the 8.3 short name has only ASCII characters
+            path = shortPath(path).filter(VoskNative::canPass).orElse(path);
+        }
         if (!canPass(path)) {
-            throw new IllegalArgumentException("音声モデルのフォルダ名に使えない文字があります: " + path);
+            throw new IllegalArgumentException("音声モデルのフォルダ名に、この OS の文字コードで使えない文字があります: "
+                    + path + "\n環境変数 " + ModelStore.MODELS_ENV + " に、英数字だけのフォルダを指定してください。");
         }
         byte[] bytes = path.getBytes(nativeCharset());
         MemorySegment segment = arena.allocate(bytes.length + 1L);
         MemorySegment.copy(bytes, 0, segment, JAVA_BYTE, 0, bytes.length);
         segment.set(JAVA_BYTE, bytes.length, (byte) 0);
         return segment;
+    }
+
+    /** The Windows 8.3 short form of a path that exists, from GetShortPathNameW. */
+    static Optional<String> shortPath(String longPath) {
+        try (Arena arena = Arena.ofConfined()) {
+            SymbolLookup kernel32 = SymbolLookup.libraryLookup("kernel32", arena);
+            MethodHandle getShortPathName = Linker.nativeLinker().downcallHandle(
+                    kernel32.findOrThrow("GetShortPathNameW"), FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT));
+            int capacity = 32_768;
+            MemorySegment in = arena.allocateFrom(longPath, StandardCharsets.UTF_16LE);
+            MemorySegment out = arena.allocate(capacity * 2L);
+            int length = (int) getShortPathName.invokeExact(in, out, capacity);
+            if (length == 0 || length >= capacity) {
+                return Optional.empty(); // the path does not exist, or 8.3 names are off on this drive
+            }
+            return Optional.of(out.getString(0, StandardCharsets.UTF_16LE));
+        } catch (Throwable t) {
+            return Optional.empty();
+        }
     }
 
     /** True if libvosk can open this path: every character fits the native narrow encoding. */

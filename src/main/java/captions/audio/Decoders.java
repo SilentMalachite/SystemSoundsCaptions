@@ -117,8 +117,10 @@ public final class Decoders {
         Path ffmpeg = Ffmpeg.find().orElseThrow(() -> new IOException(
                 "この形式を読むには ffmpeg が必要です。ffmpeg を入れてから、もう一度開いてください。"));
         // arguments as a list: no shell, so a file name cannot run a command
+        // file only: a playlist (m3u8, concat) inside the file cannot make ffmpeg open a URL
         Process process = new ProcessBuilder(ffmpeg.toString(), "-hide_banner", "-nostdin", "-nostats",
-                "-i", file.toAbsolutePath().toString(),
+                "-protocol_whitelist", "file",
+                "-i", "file:" + file.toAbsolutePath(),
                 "-vn", "-f", "s16le", "-acodec", "pcm_s16le", "-ac", "2", "-ar", "44100", "-")
                 .start();
         var format = new AudioFormat(44_100f, 16, 2, true, false);

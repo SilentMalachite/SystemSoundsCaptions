@@ -113,12 +113,6 @@ class ModelStoreTest {
     }
 
     @Test
-    void keepsTheHomeFolderWhenVoskCanOpenIt() {
-        Path home = tmp.resolve("home");
-        assertEquals(home, ModelStore.chooseRoot(home, tmp.resolve("public")));
-    }
-
-    @Test
     void refusesZipWithoutModelFiles() throws Exception {
         body = zip(NAME + "/readme.txt");
         assertThrows(IOException.class, () -> store().ensure(NAME, (d, t) -> { }));

@@ -69,6 +69,7 @@ Java は PC の出力音を直接録音できません。出力音を入力デ�
 ### アプリが使う場所
 
 - モデル: `~/.systemsoundscaptions/models/vosk-model-small-ja-0.22`（Windows は `%USERPROFILE%\.systemsoundscaptions\...`）
+  - 環境変数 `SYSTEMSOUNDSCAPTIONS_MODELS` に絶対パスを入れると、モデルをそのフォルダに置きます。Windows でユーザー名に日本語などが入り「フォルダ名に使えない文字があります」と出るときは、英数字だけのフォルダ（例: `C:\SSC\models`）を指定します。
 - 音声認識ライブラリ: `~/.systemsoundscaptions/native/`（jar から初回に展開します）
 - 設定（字幕の位置、文字サイズ、最後の音源）: Java の Preferences（macOS は `~/Library/Preferences/com.apple.java.util.prefs.plist`、Windows はレジストリ `HKCU\Software\JavaSoft\Prefs\captions`）
 
