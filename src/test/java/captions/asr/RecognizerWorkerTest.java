@@ -117,6 +117,37 @@ class RecognizerWorkerTest {
     }
 
     @Test
+    void sendsNothingAfterStop() throws InterruptedException {
+        var inAccept = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var recognizer = new FakeRecognizer("F:古い文") {
+            @Override
+            public boolean accept(byte[] pcm, int length) {
+                inAccept.countDown();
+                try {
+                    release.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return super.accept(pcm, length);
+            }
+        };
+        var queue = new PcmQueue(10);
+        var bus = new CaptionBus();
+        var events = new CopyOnWriteArrayList<CaptionEvent>();
+        bus.subscribe(events::add);
+        var worker = new RecognizerWorker(recognizer, queue, bus, null, null);
+        queue.offer(new byte[]{1, 0});
+        var thread = Thread.ofPlatform().start(worker);
+
+        assertTrue(inAccept.await(2, TimeUnit.SECONDS));
+        worker.stop();          // the user presses stop while a chunk is in the recognizer
+        release.countDown();
+        thread.join(1000);
+        assertTrue(events.isEmpty());
+    }
+
+    @Test
     void reportsRecognizerFailure() throws InterruptedException {
         var recognizer = new FakeRecognizer() {
             @Override

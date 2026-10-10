@@ -59,7 +59,7 @@ public final class RecognizerWorker implements Runnable {
                 } else {
                     String partial = recognizer.partial();
                     if (!partial.equals(lastPartial)) {
-                        bus.publish(new CaptionEvent.Partial(partial));
+                        publish(new CaptionEvent.Partial(partial));
                         lastPartial = partial;
                     }
                 }
@@ -75,9 +75,16 @@ public final class RecognizerWorker implements Runnable {
 
     private void publishFinal(String text) {
         if (text.isBlank()) {
-            bus.publish(new CaptionEvent.Partial(""));
+            publish(new CaptionEvent.Partial(""));
         } else {
-            bus.publish(new CaptionEvent.Final(text, Instant.now()));
+            publish(new CaptionEvent.Final(text, Instant.now()));
+        }
+    }
+
+    /** After stop, the chunk in progress must not put old text on the next session's captions. */
+    private void publish(CaptionEvent event) {
+        if (!stopped) {
+            bus.publish(event);
         }
     }
 }
