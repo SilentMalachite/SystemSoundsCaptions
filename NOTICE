@@ -1,0 +1,31 @@
+System Sounds Captions
+Copyright 2026 Silent Malachite
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+SystemSoundsCaptions.jar also contains the following third-party software.
+Each part keeps its own license.
+
+- Vosk 0.3.45 (native libraries only), Alpha Cephei Inc.
+  Apache License 2.0
+  https://github.com/alphacep/vosk-api
+
+- MP3SPI 1.9.5.4, JavaZOOM
+  GNU Lesser General Public License 2.1 (see licenses/LGPL-2.1.txt)
+  http://www.javazoom.net/mp3spi/mp3spi.html
+
+- JLayer 1.0.1.4, JavaZOOM
+  GNU Lesser General Public License 2.1 (see licenses/LGPL-2.1.txt)
+  http://www.javazoom.net/javalayer/javalayer.html
+
+- Tritonus Share 0.3.7.4, Tritonus project
+  GNU Lesser General Public License 2.1 (see licenses/LGPL-2.1.txt)
+  http://www.tritonus.org/
+
+The LGPL libraries are not changed. They are kept as separate classes in the jar
+(javazoom/** and org/tritonus/**), so a user can replace them with other versions.
+Their source code is available from Maven Central (com.googlecode.soundlibs,
+"-sources" jars) and from the links above.
+
+The Japanese speech model (vosk-model-small-ja-0.22) is not part of the jar.
+The app downloads it from https://alphacephei.com/vosk/models on the first start.

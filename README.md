@@ -6,6 +6,7 @@
 [![Java](https://img.shields.io/badge/Java-25%2B-orange?logo=openjdk)](https://adoptium.net/)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](#必要なもの)
 [![Speech](https://img.shields.io/badge/speech-Vosk%20%28offline%29-blue)](https://alphacephei.com/vosk/)
+[![License](https://img.shields.io/github/license/SilentMalachite/SystemSoundsCaptions)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/SilentMalachite/SystemSoundsCaptions)](https://github.com/SilentMalachite/SystemSoundsCaptions/commits/main)
 
 マイク、PC で鳴っている音（システム音声）、音声・動画ファイルを、リアルタイムで日本語字幕にするデスクトップアプリです。
@@ -111,3 +112,16 @@ GitHub Actions（`.github/workflows/ci.yml`）が、push とプルリクエス�
 | `captions.ui` | 操作ウィンドウと字幕ウィンドウ（Swing） |
 
 設計の計画書は `docs/plan/plan.packed.html` にあります。
+
+## ライセンス
+
+[Apache License 2.0](LICENSE) です。
+
+jar には、次のライブラリがそれぞれのライセンスのまま入っています。詳しくは [NOTICE](NOTICE) を見てください。
+
+| ライブラリ | ライセンス |
+|---|---|
+| Vosk 0.3.45（ネイティブライブラリ） | Apache License 2.0 |
+| MP3SPI、JLayer、Tritonus Share | [LGPL 2.1](licenses/LGPL-2.1.txt) |
+
+日本語モデル（vosk-model-small-ja-0.22）は jar に入っていません。初回の起動時にダウンロードします。
