@@ -21,15 +21,14 @@ win_svg() {
 }
 
 mkdir -p "$resources"
-ico_parts=""
+set -- # the PNGs for the .ico, kept as arguments so paths with spaces stay whole
 for size in 16 20 24 32 40 48 64 256; do
     render "$(win_svg "$size")" "$size" "$work/win-$size.png"
     cp "$work/win-$size.png" "$resources/win-$size.png"
-    ico_parts="$ico_parts $work/win-$size.png"
+    set -- "$@" "$work/win-$size.png"
 done
 # every entry is stored as PNG (Windows Vista and later); ImageMagick would store 256 px as a 260 KB bitmap
-# shellcheck disable=SC2086
-python3 - "$here/SystemSoundsCaptions.ico" $ico_parts <<'EOF'
+python3 - "$here/SystemSoundsCaptions.ico" "$@" <<'EOF'
 import struct, sys
 out, pngs = sys.argv[1], [open(p, "rb").read() for p in sys.argv[2:]]
 offset = 6 + 16 * len(pngs)
