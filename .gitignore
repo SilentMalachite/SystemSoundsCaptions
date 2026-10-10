@@ -5,3 +5,4 @@ target/
 .vscode/
 .DS_Store
 .claude/scheduled_tasks.lock
+docs/plan/plan.html
