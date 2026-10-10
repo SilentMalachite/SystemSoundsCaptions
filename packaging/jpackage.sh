@@ -53,9 +53,11 @@ case "$(uname -s)" in
         jpackage --type app-image "${common[@]}" \
             --icon packaging/icons/SystemSoundsCaptions.ico \
             --dest "$image"
-        (cd "$image" && powershell.exe -NoProfile -Command \
-            "Compress-Archive -Path '$name' -DestinationPath 'SystemSoundsCaptions.zip'")
-        mv "$image/SystemSoundsCaptions.zip" "$dist/SystemSoundsCaptions-$version-windows-$arch.zip"
+        # the tar.exe of Windows (bsdtar) writes zip paths with "/"; Compress-Archive of
+        # PowerShell 5.1 writes "\", which unzip on macOS and Linux cannot extract
+        bsdtar="$(cygpath "$SYSTEMROOT")/System32/tar.exe"
+        zip="$dist/SystemSoundsCaptions-$version-windows-$arch.zip"
+        "$bsdtar" -a -c -f "$zip" -C "$image" "$name"
         ;;
     *)
         echo "jpackage.sh supports macOS and Windows; use the jar elsewhere" >&2
