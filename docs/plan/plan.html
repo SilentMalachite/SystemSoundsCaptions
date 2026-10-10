@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>字幕アプリ計画</title>
+<link rel="stylesheet" href="/Users/hiro/.claude/plugins/cache/claude-community/html-plan/1.0.0/skills/html-plan/runtime/htmlplan.css">
+<script src="/Users/hiro/.claude/plugins/cache/claude-community/html-plan/1.0.0/skills/html-plan/runtime/htmlplan.js" defer></script>
+<style data-mock-shared>
+  .ui { font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1c1b19; background: #fff; border: 1px solid #ddd8cc; border-radius: 10px; overflow: hidden; }
+  .ui .hd { padding: 9px 14px; border-bottom: 1px solid #eee9dd; font-weight: 650; display: flex; justify-content: space-between; align-items: baseline; } .ui .hd small { color: #8a8578; font-weight: 400; }
+  .ui .ln { padding: 8px 14px; border-bottom: 1px solid #f3efe6; display: grid; grid-template-columns: 76px 1fr; gap: 8px; align-items: center; } .ui .ln > span:first-child { color: #8a8578; font-size: 13px; }
+  .ui .seg { display: flex; gap: 0; border: 1px solid #ddd8cc; border-radius: 7px; overflow: hidden; width: max-content; } .ui .seg span { padding: 4px 10px; font-size: 13px; } .ui .seg span + span { border-left: 1px solid #ddd8cc; } .ui .seg .on { background: #1c1b19; color: #fff; }
+  .ui .sel { border: 1px solid #ddd8cc; border-radius: 7px; padding: 4px 10px; font-size: 13px; width: max-content; }
+  .ui .ft { display: flex; gap: 10px; align-items: center; padding: 10px 14px; background: #faf8f3; }
+  .ui .btn { font-weight: 600; font-size: 13px; padding: 6px 14px; border-radius: 7px; border: 1px solid #ddd8cc; background: #fff; } .ui .btn.pri { background: #1c1b19; color: #fff; border-color: #1c1b19; } .ui .btn.off { opacity: .4; }
+  .ui .drop { margin: 10px 14px; padding: 10px; border: 1.5px dashed #c9c2b2; border-radius: 8px; text-align: center; color: #8a8578; font-size: 13px; }
+  .ui .bar { height: 6px; background: #eee9dd; border-radius: 3px; overflow: hidden; } .ui .bar i { display: block; height: 100%; background: #1c1b19; }
+  .ui .ok { color: #1f7a52; font-weight: 650; } .ui .bad { color: #b42318; font-weight: 650; } .ui .dim { color: #8a8578; }
+  .cap { font: 600 22px/1.5 -apple-system, "Hiragino Sans", "Yu Gothic UI", sans-serif; background: rgba(0,0,0,.72); color: #fff; border-radius: 12px; padding: 12px 20px; text-align: center; }
+  .cap .p { color: #b8b8b8; }
+  .desk { background: linear-gradient(135deg, #4b6a8f, #2c3e57); padding: 90px 24px 18px; border-radius: 8px; }
+</style>
+<body>
+
+<header>
+  <h1>SystemSoundsCaptions：Java のリアルタイム字幕アプリ</h1>
+  <doc-changes new="21"></doc-changes>
+  <details class="thread"><summary>Why · 1 request</summary>
+    <doc-quote via="prompt" from="the user">Java25以上を用いて、macOSやWindows対応。システムに取り入れたファイルやマイク音声をリアルタイムで字幕表示できるアプリを作成したい。jar形式で固めてワンクリックで起動できるようにしたいです。</doc-quote>
+  </details>
+</header>
+
+<main>
+<doc-plan>
+
+<!-- ═════ 1 ═════ -->
+<doc-claim>
+  <p>jar を1つダブルクリックすると、アプリが起動する。</p>
+  <doc-mock frame="terminal" title="SystemSoundsCaptions" w="470"><template><span class="dim">$</span> mvn -q package
+<span class="g">✓</span> target/<b>SystemSoundsCaptions.jar</b>  <span class="dim">約 28 MB</span>
+<span class="dim">  macOS (arm64, x64) と Windows x64 のネイティブ入り</span>
+
+<span class="dim">$</span> java -jar target/SystemSoundsCaptions.jar
+<span class="dim">  # ダブルクリックと同じ</span>
+<span class="g">✓</span> Java 27 · macOS aarch64
+<span class="g">✓</span> 操作ウィンドウと字幕ウィンドウを表示</template></doc-mock>
+
+  <doc-claim>
+    <p>Maven Shade が全クラスとネイティブライブラリを1つの jar に入れる。</p>
+    <doc-code title="pom.xml · sketch" lang="xml" hl="4,14,18">
+<script type="text/plain">
+<maven.compiler.release>25</maven.compiler.release>
+<!-- dependencies (groupId:artifactId:version) -->
+<!--   com.alphacephei:vosk:0.3.45              -->
+<!--   net.java.dev.jna:jna:5.19.1              -->
+<!--   com.googlecode.soundlibs:mp3spi:1.9.5.4  -->
+<plugin>
+  <artifactId>maven-shade-plugin</artifactId>
+  <configuration>
+    <finalName>SystemSoundsCaptions</finalName>
+    <transformers>
+      <transformer implementation="…ManifestResourceTransformer">
+        <mainClass>captions.Launcher</mainClass>
+        <manifestEntries>
+          <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+        </manifestEntries>
+      </transformer>
+      <transformer implementation="…ServicesResourceTransformer"/>
+    </transformers>
+  </configuration>
+</plugin>
+</script>
+      <doc-pin line="4" title="vosk 0.3.45 は JNA 5.7 を引く。新しい版で上書きする"></doc-pin>
+      <doc-pin line="14" title="Java 24 以降の JNI 警告を消す"></doc-pin>
+      <doc-pin line="18" tone="warn" title="mp3spi の SPI 登録を残す">これが無いと MP3 を読めない。</doc-pin>
+    </doc-code>
+  </doc-claim>
+
+  <doc-claim>
+    <p>Java 25 未満で起動すると、エラーを画面に出して止まる。</p>
+    <doc-code title="src/launcher/java/captions/Launcher.java · sketch" lang="java" hl="1">
+<script type="text/plain">
+// --release 8 でコンパイルする。古い Java でもこのクラスは読める
+public final class Launcher {
+  public static void main(String[] args) throws Exception {
+    String v = System.getProperty("java.specification.version"); // "1.8", "21", "25"
+    int major = v.startsWith("1.") ? 8 : Integer.parseInt(v.split("\\.")[0]);
+    if (major < 25) {
+      JOptionPane.showMessageDialog(null,
+          "Java 25 以上が必要です。現在のバージョン: " + v,
+          "System Sounds Captions", JOptionPane.ERROR_MESSAGE);
+      System.exit(1);
+    }
+    Class.forName("captions.App").getMethod("main", String[].class)
+         .invoke(null, (Object) args);
+  }
+}
+</script>
+    </doc-code>
+  </doc-claim>
+
+  <doc-claim>
+    <p>マイクの音が3秒間ゼロなら、OS の許可設定を案内する。</p>
+    <doc-code title="src/main/java/captions/asr/SilenceGuard.java · sketch" lang="java">
+<script type="text/plain">
+// macOS が許可を拒否すると、エラーではなく無音が届く
+void check(byte[] chunk) {
+  if (Pcm.peak(chunk) != 0) { silent = 0; return; }
+  if (++silent == 30) {                      // 30 × 0.1 秒
+    bus.publish(new CaptionEvent.Error(
+        "音が届きません。システム設定 › プライバシー › マイク を確認してください。"));
+  }
+}
+</script>
+    </doc-code>
+    <doc-note tone="risk"><strong>リスク</strong> jar のダブルクリック起動で macOS が許可ダイアログを出すか、まだ確認していない。最初の試作で確かめる。</doc-note>
+  </doc-claim>
+</doc-claim>
+
+<!-- ═════ 2 ═════ -->
+<doc-claim>
+  <p>ユーザーは小さな操作ウィンドウで音源と言語を選ぶ。</p>
+  <doc-mock frame="none" w="420"><template>
+<div class="ui">
+  <div class="hd">System Sounds Captions <small>v1.0</small></div>
+  <div class="ln"><span>音源</span><div class="seg" data-ref="src"><span class="on">マイク</span><span>システム音声</span><span>ファイル</span></div></div>
+  <div class="ln"><span>デバイス</span><div class="sel">MacBook Pro のマイク ▾</div></div>
+  <div class="ln"><span>言語</span><div class="sel" data-ref="lang">日本語 ▾</div></div>
+  <div class="ln"><span>文字サイズ</span><div class="bar"><i style="width:45%"></i></div></div>
+  <div class="ft"><span class="btn pri" data-ref="start">▶ 開始</span><span class="dim">待機中</span></div>
+</div></template>
+    <doc-pin ref="src" anchor="r" offset="10,0" title="3つの音源">どれも同じ認識処理に入る。</doc-pin>
+    <doc-pin ref="start" anchor="tl" title="状態は 2.2 を参照"></doc-pin>
+  </doc-mock>
+  <doc-ask id="langs">
+    <p>最初の版で、どの言語を選べるようにしますか？</p>
+    <label><input type="checkbox" name="langs" value="ja" checked> 日本語 <small>約 48 MB のモデル</small></label>
+    <label><input type="checkbox" name="langs" value="en" checked> 英語 <small>約 40 MB のモデル</small></label>
+    <label><input type="checkbox" name="langs" value="zh"> 中国語 <small>約 42 MB のモデル</small></label>
+  </doc-ask>
+
+  <doc-claim>
+    <p>すべての音源は 16 kHz モノラル PCM を同じキューに送る。</p>
+    <doc-calls title="開始" caption="認識スレッドは音源の種類を知らない。">
+<script type="text/plain">
++ **ControlWindow**.onStart()                    @ src/main/java/captions/ui/ControlWindow.java:60
++   **Session**.start(source, lang)              @ src/main/java/captions/Session.java:30
++     **ModelStore**.ensure(lang)                @ src/main/java/captions/asr/ModelStore.java:22   -- 5.2
++     **RecognizerWorker**.start(queue, model)   @ src/main/java/captions/asr/RecognizerWorker.java:25
++     **LineSource**.start(queue)                @ src/main/java/captions/audio/LineSource.java:20  -- マイクとシステム音声
++       AudioSystem.getTargetDataLine(FORMAT, mixer)  @ src/main/java/captions/audio/LineSource.java:28
++       **PcmQueue**.offer(chunk)                @ src/main/java/captions/audio/PcmQueue.java:15   -- 3200 バイト = 0.1 秒
+</script>
+    </doc-calls>
+  </doc-claim>
+
+  <doc-claim>
+    <p>開始ボタンは、モデルの読み込みが終わると「停止」に変わる。</p>
+    <doc-machine name="session" caption="ファイルが最後まで進んだときも、停止と同じく待機中に戻る。">
+<script type="text/plain">
+machine session initial idle
+state idle        # 待機中。開始を押せる。
+state loading     # モデルを読み込み中。
+state listening   # 音を受けて字幕を出している。
+state error       # デバイスかモデルで失敗した。
+
+| .     | .       | .         |
+| idle  | loading | listening |
+| error | .       | .         |
+
+idle      -start->  loading   : 開始
+loading   -ready->  listening : 読み込み完了
+loading   -fail->   error     : 失敗
+listening -stop->   idle      : 停止・終了
+listening -lost->   error     : デバイス切断
+error     -reset->  idle      : OK
+</script>
+      <div data-state="idle"><doc-mock frame="none" w="380"><template><div class="ui"><div class="ft"><span class="btn pri">▶ 開始</span><span class="dim">待機中</span></div></div></template></doc-mock></div>
+      <div data-state="loading"><doc-mock frame="none" w="380"><template><div class="ui"><div class="ft"><span class="btn pri off">▶ 開始</span><span class="dim">モデルを読み込み中…</span></div></div></template></doc-mock></div>
+      <div data-state="listening"><doc-mock frame="none" w="380"><template><div class="ui"><div class="ft"><span class="btn">■ 停止</span><span class="ok">● 認識中</span><span class="dim">マイク</span></div></div></template></doc-mock></div>
+      <div data-state="error"><doc-mock frame="none" w="380"><template><div class="ui"><div class="ft"><span class="btn pri">▶ 開始</span><span class="bad">⚠ マイクを開けません</span></div></div></template></doc-mock></div>
+    </doc-machine>
+  </doc-claim>
+
+  <doc-claim>
+    <p>システム音声は、ループバック用の入力デバイスから取り込む。</p>
+    <doc-code title="src/main/java/captions/audio/LoopbackFinder.java · sketch" lang="java">
+<script type="text/plain">
+static final List<String> HINTS = List.of(
+    "BlackHole",                        // macOS
+    "Stereo Mix", "ステレオ ミキサー",   // Windows 標準
+    "CABLE Output");                    // VB-CABLE
+
+static Optional<Mixer.Info> find() {
+  var want = new DataLine.Info(TargetDataLine.class, AudioSource.FORMAT);
+  return Arrays.stream(AudioSystem.getMixerInfo())
+      .filter(i -> HINTS.stream().anyMatch(i.getName()::contains))
+      .filter(i -> AudioSystem.getMixer(i).isLineSupported(want))
+      .findFirst();
+}
+</script>
+    </doc-code>
+    <doc-ask id="loopback">
+      <p>システム音声をどう取り込みますか？</p>
+      <label><input type="radio" name="loopback" value="virtual" checked> 仮想デバイス経由 <small>BlackHole や ステレオミキサー。ネイティブコード不要</small></label>
+      <label><input type="radio" name="loopback" value="native"> OS の API で直接 <small>ScreenCaptureKit と WASAPI を FFM で呼ぶ。工数大</small></label>
+      <label><input type="radio" name="loopback" value="none"> 扱わない <small>2.3 は無くなる</small></label>
+    </doc-ask>
+    <div data-if="loopback=virtual"><doc-note tone="warn">macOS では、ユーザーが BlackHole を入れて「複数出力装置」を作る必要がある。手順を README に書く。デバイスが無いとき、画面にも案内を出す。</doc-note></div>
+    <div data-if="loopback=native"><doc-note tone="risk">macOS 側は Swift の小さなヘルパーが要る。jar 1つという形を保つには、ヘルパーを jar に入れて初回に展開する。</doc-note></div>
+  </doc-claim>
+</doc-claim>
+
+<!-- ═════ 3 ═════ -->
+<doc-claim>
+  <p>字幕は、他のアプリより前面の半透明ウィンドウに出る。</p>
+  <doc-mock frame="none" w="480"><template>
+<div class="desk">
+  <div class="cap" data-ref="cap">今日はシステム音声を字幕にするアプリを作ります。<br><span class="p" data-ref="partial">まずはマイクから試して</span></div>
+</div></template>
+    <doc-pin ref="partial" anchor="br" title="灰色は認識中の文字">確定すると白になる。</doc-pin>
+  </doc-mock>
+
+  <doc-claim>
+    <p>オーバーレイは確定行を2行まで残し、5秒後に消す。</p>
+    <doc-code title="src/main/java/captions/ui/CaptionOverlay.java · sketch" lang="java" hl="3-8">
+<script type="text/plain">
+void onEvent(CaptionEvent e) {
+  SwingUtilities.invokeLater(() -> {
+    switch (e) {
+      case Partial p -> partial.setText(p.text());
+      case Final f   -> { lines.addLast(new Line(f.text(), f.at()));
+                          partial.setText("");
+                          while (lines.size() > 2) lines.removeFirst(); }
+      case Error err -> partial.setText("⚠ " + err.message());
+    }
+    repaint();
+  });
+}
+// 1 秒ごとの Swing Timer が、5 秒より古い行を消す
+</script>
+      <doc-pin line="3" title="sealed interface の switch。default は要らない"></doc-pin>
+    </doc-code>
+  </doc-claim>
+
+  <doc-claim>
+    <p>ユーザーはオーバーレイをドラッグで動かせる。次の起動でも同じ位置に出る。</p>
+    <doc-code title="src/main/java/captions/ui/CaptionOverlay.java · sketch" lang="java">
+<script type="text/plain">
+CaptionOverlay() {
+  setUndecorated(true);
+  setAlwaysOnTop(true);
+  setBackground(new Color(0, 0, 0, 0));            // 角の外は透明
+  var p = Preferences.userNodeForPackage(CaptionOverlay.class);
+  setLocation(p.getInt("x", defaultX()), p.getInt("y", defaultY()));
+  var drag = new DragListener(this, loc -> {
+    p.putInt("x", loc.x);
+    p.putInt("y", loc.y);
+  });
+  addMouseListener(drag);
+  addMouseMotionListener(drag);
+}
+</script>
+    </doc-code>
+  </doc-claim>
+</doc-claim>
+
+<!-- ═════ 4 ═════ -->
+<doc-claim>
+  <p>ユーザーは音声や動画のファイルを開き、再生に合わせて字幕を見る。</p>
+  <doc-mock frame="none" w="420"><template>
+<div class="ui">
+  <div class="ln"><span>音源</span><div class="seg"><span>マイク</span><span>システム音声</span><span class="on">ファイル</span></div></div>
+  <div class="drop" data-ref="drop">ここにファイルをドロップ、またはクリックして選ぶ</div>
+  <div class="ln"><span>再生</span><div><div class="dim" style="font-size:13px">interview.mp4</div><div class="bar"><i style="width:18%"></i></div></div></div>
+  <div class="ft"><span class="btn">■ 停止</span><span class="ok">● 認識中</span><span class="dim">02:41 / 14:30</span></div>
+</div></template>
+    <doc-pin ref="drop" anchor="tr" title="ドラッグ＆ドロップ可"></doc-pin>
+  </doc-mock>
+  <doc-ask id="formats">
+    <p>どのファイル形式を読めるようにしますか？</p>
+    <label><input type="radio" name="formats" value="java"> WAV・AIFF・MP3 だけ <small>Java Sound と mp3spi。追加なし</small></label>
+    <label><input type="radio" name="formats" value="ffmpeg" checked> 上記に加え、ffmpeg があれば MP4・M4A・MOV など <small>ffmpeg はユーザーが入れる</small></label>
+    <label><input type="radio" name="formats" value="javacv"> FFmpeg を jar に同梱 <small>jar が 100 MB 以上増える</small></label>
+  </doc-ask>
+  <div data-if="formats=java"><doc-note>4.2 は無くなる。</doc-note></div>
+
+  <doc-claim>
+    <p>ファイル音源は、スピーカーと認識処理へ同時に音を送る。</p>
+    <doc-calls title="ファイル再生" caption="スピーカーへの書き込みが待つので、速さは実時間になる。">
+<script type="text/plain">
++ **FileSource**.start(queue)                    @ src/main/java/captions/audio/FileSource.java:30
++   **Decoders**.open(path)                      @ src/main/java/captions/audio/Decoders.java:18   -- Java Sound、だめなら ffmpeg
++   speaker.write(buf, 0, n)                     @ src/main/java/captions/audio/FileSource.java:48  -- 元の音質のまま
++   **PcmConverter**.toMono16k(buf, n)          @ src/main/java/captions/audio/PcmConverter.java:12
++   queue.offer(chunk)                           @ src/main/java/captions/audio/FileSource.java:52
++   session.onEof()                              @ src/main/java/captions/Session.java:71           -- 待機中に戻る
+</script>
+    </doc-calls>
+  </doc-claim>
+
+  <doc-claim>
+    <p>Java Sound で読めない形式は、ffmpeg が PCM に変える。</p>
+    <doc-code title="src/main/java/captions/audio/Decoders.java · sketch" lang="java">
+<script type="text/plain">
+static AudioInputStream open(Path file) throws IOException {
+  try {
+    return AudioSystem.getAudioInputStream(file.toFile());   // WAV, AIFF, MP3
+  } catch (UnsupportedAudioFileException e) {
+    var ffmpeg = Ffmpeg.find().orElseThrow(() ->
+        new IOException("この形式には ffmpeg が必要です"));
+    var proc = new ProcessBuilder(ffmpeg.toString(), "-v", "error",
+        "-i", file.toString(), "-f", "s16le", "-ac", "2", "-ar", "44100", "-")
+        .redirectError(ProcessBuilder.Redirect.DISCARD).start();
+    var fmt = new AudioFormat(44_100f, 16, 2, true, false);
+    return new AudioInputStream(proc.getInputStream(), fmt, AudioSystem.NOT_SPECIFIED);
+  }
+}
+</script>
+      <doc-pin line="7" title="引数は配列で渡す。シェルを通さない"></doc-pin>
+    </doc-code>
+  </doc-claim>
+</doc-claim>
+
+<!-- ═════ 5 ═════ -->
+<doc-claim>
+  <p>音声認識は PC の中で動く。初回のあとはネット接続が要らない。</p>
+  <doc-mock frame="none" w="400"><template>
+<div class="ui">
+  <div class="hd">音声モデルのダウンロード <small>初回だけ</small></div>
+  <div class="ln"><span>日本語</span><div class="bar"><i style="width:62%"></i></div></div>
+  <div class="ln"><span></span><span class="dim">30 / 48 MB · ~/.systemsoundscaptions/models</span></div>
+  <div class="ft"><span class="btn">キャンセル</span></div>
+</div></template></doc-mock>
+  <doc-ask id="engine">
+    <p>どの認識エンジンを使いますか？</p>
+    <label><input type="radio" name="engine" value="vosk" checked> Vosk <small>逐次認識。遅れは約 0.3 秒。精度は中</small></label>
+    <label><input type="radio" name="engine" value="whisper"> whisper.cpp（whisper-jni） <small>精度は高い。字幕は 2〜4 秒遅れる</small></label>
+    <label><input type="radio" name="engine" value="cloud"> クラウド API <small>精度は最高。ネットと API キーが必須</small></label>
+  </doc-ask>
+  <div data-if="engine=whisper"><doc-note tone="warn">5.1 は 3 秒ごとの区切りになり、灰色の途中結果は出ない。モデルは約 140 MB（base）。</doc-note></div>
+  <div data-if="engine=cloud"><doc-note tone="warn">5.2 は無くなり、API キーの設定画面が増える。音声が外部に送られる。</doc-note></div>
+
+  <doc-claim>
+    <p>認識スレッドは 0.1 秒ずつ音を読み、途中結果と確定結果を出す。</p>
+    <doc-calls title="認識" caption="2番目の行を押すとコードが開く。">
+<script type="text/plain">
++ **RecognizerWorker**.run()                     @ src/main/java/captions/asr/RecognizerWorker.java:25
++   queue.take()                                 @ src/main/java/captions/asr/RecognizerWorker.java:30
++   **SilenceGuard**.check(chunk)                @ src/main/java/captions/asr/SilenceGuard.java:10  -- 1.3
++   recognizer.acceptWaveForm(chunk, n)          @ src/main/java/captions/asr/RecognizerWorker.java:32
++   bus.publish(Partial | Final)                 @ src/main/java/captions/asr/RecognizerWorker.java:33
+</script>
+    </doc-calls>
+    <doc-claim at="src/main/java/captions/asr/RecognizerWorker.java:25">
+      <p><b>RecognizerWorker.java:25</b> · run()</p>
+      <doc-code title="RecognizerWorker.java · sketch" lang="java" start="25">
+<script type="text/plain">
+public void run() {
+  try (var model = new Model(modelDir.toString());
+       var rec = new Recognizer(model, 16_000f)) {
+    session.onReady();
+    while (!stopped) {
+      byte[] chunk = queue.take();
+      guard.check(chunk);
+      if (rec.acceptWaveForm(chunk, chunk.length)) {
+        bus.publish(new Final(text(rec.getResult(), "text"), Instant.now()));
+      } else {
+        bus.publish(new Partial(text(rec.getPartialResult(), "partial")));
+      }
+    }
+  } catch (Exception e) { session.onFail(e); }
+}
+private String text(String json, String key) {
+  String t = Json.field(json, key);
+  return lang.equals("ja") ? t.replace(" ", "") : t;
+}
+</script>
+        <doc-pin line="42" title="Vosk の日本語は単語の間に空白が入る。消す"></doc-pin>
+      </doc-code>
+    </doc-claim>
+  </doc-claim>
+
+  <doc-claim>
+    <p>初回の開始で、モデルをユーザーのフォルダにダウンロードする。</p>
+    <doc-code title="src/main/java/captions/asr/ModelStore.java · sketch" lang="java">
+<script type="text/plain">
+static final Path ROOT = Path.of(System.getProperty("user.home"), ".systemsoundscaptions", "models");
+static final Map<String, String> MODELS = Map.of(
+    "ja", "vosk-model-small-ja-0.22",
+    "en", "vosk-model-small-en-us-0.15");
+
+Path ensure(String lang, Progress p) throws IOException, InterruptedException {
+  var dir = ROOT.resolve(MODELS.get(lang));
+  if (Files.isDirectory(dir.resolve("am"))) return dir;          // もうある
+  var zip = ROOT.resolve(dir.getFileName() + ".zip.part");
+  var uri = URI.create("https://alphacephei.com/vosk/models/" + dir.getFileName() + ".zip");
+  try (var http = HttpClient.newHttpClient()) {
+    http.send(HttpRequest.newBuilder(uri).build(), Progress.toFile(zip, p));
+  }
+  Unzip.into(zip, ROOT);                                        // "../" を含む項目は拒否
+  Files.delete(zip);
+  return dir;
+}
+</script>
+    </doc-code>
+    <doc-ask id="model">
+      <p>モデルをどう配りますか？</p>
+      <label><input type="radio" name="model" value="download" checked> 初回にダウンロード <small>jar は約 28 MB のまま。初回だけネットが要る</small></label>
+      <label><input type="radio" name="model" value="bundle"> jar に同梱 <small>言語ごとに約 45 MB 増える。完全オフライン</small></label>
+    </doc-ask>
+    <div data-if="model=bundle"><doc-note>5 のダウンロード画面は無くなる。初回に jar からユーザーのフォルダへ展開する。</doc-note></div>
+  </doc-claim>
+</doc-claim>
+
+<!-- ═════ shared · not changing ═════ -->
+<doc-claim aux="shared">
+  <p>共有: 1つの音源インターフェースと1つの字幕イベント型。</p>
+  <doc-schema id="types" lang="java" title="audio/AudioSource.java · caption/CaptionEvent.java" caption="UI は Swing だけを使う。JavaFX は jar に入れない。">
+<script type="text/plain">
+public sealed interface AudioSource extends AutoCloseable
+    permits LineSource, FileSource {
+  // 16 kHz, 16 bit, mono, signed, little-endian
+  AudioFormat FORMAT = new AudioFormat(16_000f, 16, 1, true, false);
+  void start(PcmQueue out) throws IOException;   // 自分のスレッドで 0.1 秒ずつ送る
+  String label();                                // 操作ウィンドウに出す名前
+}
+
+public sealed interface CaptionEvent {
+  record Partial(String text) implements CaptionEvent {}
+  record Final(String text, Instant at) implements CaptionEvent {}
+  record Error(String message) implements CaptionEvent {}
+}
+</script>
+  </doc-schema>
+</doc-claim>
+
+<doc-claim aux="scope">
+  <p>作らないもの: 翻訳、字幕ファイルの書き出し、インストーラー。</p>
+  <ul>
+    <li>翻訳、話者の区別、SRT の書き出しは作らない。</li>
+    <li>クリックが下のアプリに抜けるオーバーレイは作らない。OS ごとのネイティブ API が要る。</li>
+    <li>jpackage のインストーラーは作らない。配るのは jar 1つだけ。</li>
+    <li>Java ランタイムは同梱しない。ユーザーが Java 25 以上を入れる。</li>
+    <li>Linux 用のネイティブも jar に入るが、テストはしない。</li>
+  </ul>
+</doc-claim>
+
+</doc-plan>
+</main>
+</body>
+</html>

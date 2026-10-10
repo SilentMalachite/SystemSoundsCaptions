@@ -1,0 +1,7 @@
+target/
+.playwright-mcp/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+.claude/scheduled_tasks.lock
